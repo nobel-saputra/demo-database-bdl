@@ -38,6 +38,89 @@
         border-radius: 4px;
         overflow-x: auto; /* Untuk scrolling horizontal jika JSON terlalu panjang */
       }
+      /* Gaya untuk tombol */
+      .transaksi-card button {
+        margin-top: 10px;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      .delete-btn {
+        background-color: #f44336;
+        color: white;
+      }
+      .edit-btn {
+        background-color: #008cba;
+        color: white;
+        margin-left: 5px;
+      }
+
+      /* Gaya untuk Modal */
+      .modal {
+        display: none; /* Sembunyikan secara default */
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        padding-top: 60px;
+      }
+      .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 8px;
+        position: relative;
+      }
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .modal-content form label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      .modal-content form input[type="text"],
+      .modal-content form input[type="number"] {
+        width: calc(100% - 16px); /* Kurangi padding */
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      .modal-content form button {
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      .modal-content form button[type="submit"] {
+        background-color: #4caf50;
+        color: white;
+      }
+      .modal-content form button[type="button"] {
+        background-color: #f44336;
+        color: white;
+        margin-left: 10px;
+      }
     </style>
   </head>
   <body>
@@ -46,58 +129,189 @@
       <p>Memuat data...</p>
     </div>
 
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Edit Transaksi</h2>
+        <form id="editForm">
+          <input type="hidden" id="editTransaksiId" />
+          <label for="editProductName">Nama Produk:</label><br />
+          <input type="text" id="editProductName" name="product_name" required /><br />
+
+          <label for="editPrice">Harga:</label><br />
+          <input type="number" id="editPrice" name="price" required /><br />
+
+          <label for="editStatus">Status:</label><br />
+          <input type="text" id="editStatus" name="status" required /><br />
+
+          <label for="editCustomerId">Customer ID:</label><br />
+          <input type="number" id="editCustomerId" name="customer_id" required /><br />
+
+          <button type="submit">Simpan Perubahan</button>
+          <button type="button" onclick="closeModal()">Batal</button>
+        </form>
+      </div>
+    </div>
     <script>
+      // Variabel global untuk menyimpan data transaksi yang di-fetch
+      // Agar fungsi edit bisa mengaksesnya tanpa perlu fetch ulang
+      let allTransaksi = [];
+
+      // Fungsi untuk mengambil data transaksi
       async function fetchTransaksi() {
         const transaksiListDiv = document.getElementById("transaksiList");
-        transaksiListDiv.innerHTML = "<p>Memuat data...</p>"; // Reset loading message
+        transaksiListDiv.innerHTML = "<p>Memuat data...</p>";
 
         try {
-          const response = await fetch("http://localhost:3000/api/transaksi"); // Panggil API kita
+          const response = await fetch("http://localhost:3000/api/transaksi");
           if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
-          const transaksi = await response.json(); // Parse response JSON
+          allTransaksi = await response.json(); // Simpan data ke variabel global
 
-          transaksiListDiv.innerHTML = ""; // Clear loading message
+          transaksiListDiv.innerHTML = "";
 
-          if (transaksi.length === 0) {
+          if (allTransaksi.length === 0) {
             transaksiListDiv.innerHTML = "<p>Tidak ada data transaksi.</p>";
             return;
           }
 
-          transaksi.forEach((t) => {
+          allTransaksi.forEach((t) => {
             const card = document.createElement("div");
             card.classList.add("transaksi-card");
 
-            // Data 'data' adalah JSON string, jadi kita parse dulu
-            let dataObj;
-            try {
-              dataObj = JSON.parse(t.data);
-            } catch (e) {
-              console.error("Error parsing JSON data:", e);
-              dataObj = { error: "Invalid JSON data" };
-            }
+            // Karena t.data dari API sudah berupa objek JavaScript
+            const dataObj = t.data;
 
             card.innerHTML = `
                         <h2>Transaksi ID: ${t.id}</h2>
                         <p><strong>Produk:</strong> ${dataObj.product_name || "N/A"}</p>
-                        <p><strong>Harga:</strong> ${dataObj.price ? dataObj.price.toLocaleString("id-ID") : "N/A"}</p>
+                        <p><strong>Harga:</strong> ${
+                          dataObj.price
+                            ? dataObj.price.toLocaleString("id-ID", {
+                                style: "currency",
+                                currency: "IDR",
+                              })
+                            : "N/A"
+                        }</p>
                         <p><strong>Status:</strong> ${dataObj.status || "N/A"}</p>
-                        <p><strong>Customer ID:</strong> <span class="math-inline">\{dataObj\.customer\_id \|\| 'N/A'\}</p\>
-                            <p><strong>Data Lengkap (JSON):</strong></p>
-<pre>{JSON.stringify(dataObj, null, 2)}</pre>
-`;
+                        <p><strong>Customer ID:</strong> ${dataObj.customer_id || "N/A"}</p>
+                        <p><strong>Data Lengkap (JSON):</strong></p>
+                        <pre>${JSON.stringify(dataObj, null, 2)}</pre>
+                        <button class="delete-btn" data-id="${t.id}">Hapus Transaksi</button>
+                        <button class="edit-btn" data-id="${t.id}">Edit Transaksi</button>
+                    `;
             transaksiListDiv.appendChild(card);
           });
+
+          // --- Event Listeners untuk Tombol DELETE dan EDIT ---
+          document.querySelectorAll(".delete-btn").forEach((button) => {
+            button.addEventListener("click", async (event) => {
+              const idToDelete = event.target.dataset.id;
+              if (confirm(`Anda yakin ingin menghapus transaksi ID ${idToDelete}?`)) {
+                await deleteTransaksi(idToDelete);
+              }
+            });
+          });
+
+          document.querySelectorAll(".edit-btn").forEach((button) => {
+            button.addEventListener("click", (event) => {
+              const idToEdit = event.target.dataset.id;
+              // Cari transaksi yang sesuai dari data yang sudah di-fetch
+              const currentTransaksi = allTransaksi.find((t) => t.id == idToEdit);
+              if (currentTransaksi) {
+                openEditModal(currentTransaksi);
+              } else {
+                alert("Transaksi tidak ditemukan untuk diedit.");
+              }
+            });
+          });
+          // --- AKHIR Event Listeners ---
         } catch (error) {
           transaksiListDiv.innerHTML = `<p style="color: red;">Gagal memuat data: ${error.message}</p>`;
           console.error("Error fetching data:", error);
         }
       }
 
+      // Fungsi untuk menghapus transaksi
+      async function deleteTransaksi(id) {
+        try {
+          const response = await fetch(`http://localhost:3000/api/transaksi/${id}`, {
+            method: "DELETE",
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`HTTP error! status: ${response.status} - ${errorData.message}`);
+          }
+
+          const result = await response.json();
+          alert(result.message);
+          fetchTransaksi(); // Refresh daftar transaksi
+        } catch (error) {
+          alert(`Gagal menghapus transaksi: ${error.message}`);
+          console.error("Error deleting data:", error);
+        }
+      }
+
+      // --- FUNGSI BARU UNTUK EDIT ---
+
+      // Fungsi untuk membuka modal edit dan mengisi form
+      function openEditModal(transaksi) {
+        document.getElementById("editTransaksiId").value = transaksi.id;
+        document.getElementById("editProductName").value = transaksi.data.product_name || "";
+        document.getElementById("editPrice").value = transaksi.data.price || "";
+        document.getElementById("editStatus").value = transaksi.data.status || "";
+        document.getElementById("editCustomerId").value = transaksi.data.customer_id || "";
+
+        document.getElementById("editModal").style.display = "block";
+      }
+
+      // Fungsi untuk menutup modal edit
+      function closeModal() {
+        document.getElementById("editModal").style.display = "none";
+      }
+
+      // Event Listener untuk form submit edit
+      document.getElementById("editForm").addEventListener("submit", async (event) => {
+        event.preventDefault(); // Mencegah form submit secara default
+
+        const transaksiId = document.getElementById("editTransaksiId").value;
+        const updatedData = {
+          product_name: document.getElementById("editProductName").value,
+          price: parseFloat(document.getElementById("editPrice").value),
+          status: document.getElementById("editStatus").value,
+          customer_id: parseInt(document.getElementById("editCustomerId").value),
+          // Tambahkan properti lain yang mungkin ingin diedit di sini
+        };
+
+        try {
+          const response = await fetch(`http://localhost:3000/api/transaksi/${transaksiId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(updatedData),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`HTTP error! status: ${response.status} - ${errorData.message}`);
+          }
+
+          const result = await response.json();
+          alert(result.message);
+          closeModal();
+          fetchTransaksi(); // Refresh daftar transaksi
+        } catch (error) {
+          alert(`Gagal mengupdate transaksi: ${error.message}`);
+          console.error("Error updating data:", error);
+        }
+      });
+      // --- AKHIR FUNGSI BARU UNTUK EDIT ---
+
       // Panggil fungsi saat halaman dimuat
       fetchTransaksi();
     </script>
   </body>
 </html>
-```

@@ -36,5 +36,23 @@
     "order_date": "2025-05-22",
     "warranty_months": 12,
     "shipping_service": "Express"
+  },
+  {
+    "customer_id": 106,
+    "product_name": "kamera DSLR",
+    "price": 15000000,
+    "quantity": 1,
+    "order_date": "2025-05-22",
+    "warranty_months": 12,
+    "shipping_service": "Express"
+  },
+  {
+    "customer_id": 109,
+    "product_name": "tolong kaki saya sakit",
+    "price": 15000000,
+    "quantity": 1,
+    "order_date": "2025-05-22",
+    "warranty_months": 12,
+    "shipping_service": "Express"
   }
 ]
