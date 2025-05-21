@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Daftar Transaksi</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f4f4f4;
+      }
+      h1 {
+        color: #333;
+      }
+      #transaksiList {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+      }
+      .transaksi-card {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 15px;
+        word-wrap: break-word; /* Memastikan teks panjang pecah baris */
+      }
+      .transaksi-card h2 {
+        margin-top: 0;
+        color: #0056b3;
+      }
+      .transaksi-card p {
+        margin: 5px 0;
+      }
+      pre {
+        background-color: #eee;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto; /* Untuk scrolling horizontal jika JSON terlalu panjang */
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Daftar Transaksi</h1>
+    <div id="transaksiList">
+      <p>Memuat data...</p>
+    </div>
+
+    <script>
+      async function fetchTransaksi() {
+        const transaksiListDiv = document.getElementById("transaksiList");
+        transaksiListDiv.innerHTML = "<p>Memuat data...</p>"; // Reset loading message
+
+        try {
+          const response = await fetch("http://localhost:3000/api/transaksi"); // Panggil API kita
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const transaksi = await response.json(); // Parse response JSON
+
+          transaksiListDiv.innerHTML = ""; // Clear loading message
+
+          if (transaksi.length === 0) {
+            transaksiListDiv.innerHTML = "<p>Tidak ada data transaksi.</p>";
+            return;
+          }
+
+          transaksi.forEach((t) => {
+            const card = document.createElement("div");
+            card.classList.add("transaksi-card");
+
+            // Data 'data' adalah JSON string, jadi kita parse dulu
+            let dataObj;
+            try {
+              dataObj = JSON.parse(t.data);
+            } catch (e) {
+              console.error("Error parsing JSON data:", e);
+              dataObj = { error: "Invalid JSON data" };
+            }
+
+            card.innerHTML = `
+                        <h2>Transaksi ID: ${t.id}</h2>
+                        <p><strong>Produk:</strong> ${dataObj.product_name || "N/A"}</p>
+                        <p><strong>Harga:</strong> ${dataObj.price ? dataObj.price.toLocaleString("id-ID") : "N/A"}</p>
+                        <p><strong>Status:</strong> ${dataObj.status || "N/A"}</p>
+                        <p><strong>Customer ID:</strong> <span class="math-inline">\{dataObj\.customer\_id \|\| 'N/A'\}</p\>
+                            <p><strong>Data Lengkap (JSON):</strong></p>
+<pre>{JSON.stringify(dataObj, null, 2)}</pre>
+`;
+            transaksiListDiv.appendChild(card);
+          });
+        } catch (error) {
+          transaksiListDiv.innerHTML = `<p style="color: red;">Gagal memuat data: ${error.message}</p>`;
+          console.error("Error fetching data:", error);
+        }
+      }
+
+      // Panggil fungsi saat halaman dimuat
+      fetchTransaksi();
+    </script>
+  </body>
+</html>
+```

@@ -1,0 +1,15 @@
+services:
+  db:
+    image: mysql:8 # Menggunakan MySQL versi 8
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql # Mengubah nama volume agar unik
+    ports:
+      - "3310:3306" # Memetakan port host:container
+    environment:
+      MYSQL_ROOT_PASSWORD: admin123 # Password untuk user root
+      MYSQL_DATABASE: transaksi      # Nama database yang akan dibuat
+      MYSQL_USER: user          # Username database
+      MYSQL_PASSWORD: admin123      # Password database
+volumes:
+  mysql_data: # Definisi volume yang akan digunakan (sesuai nama di atas)

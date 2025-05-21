@@ -1,0 +1,40 @@
+[
+  {
+    "customer_id": 101,
+    "product_name": "Laptop Gaming",
+    "price": 18000000,
+    "quantity": 1,
+    "order_date": "2025-05-20",
+    "status": "completed",
+    "customer_info": {
+      "name": "Budi Santoso",
+      "email": "budi@example.com"
+    }
+  },
+  {
+    "customer_id": 102,
+    "product_name": "Smartphone Flagship",
+    "price": 12000000,
+    "quantity": 1,
+    "order_date": "2025-05-21",
+    "status": "pending",
+    "payment_method": "Credit Card"
+  },
+  {
+    "customer_id": 101,
+    "product_name": "Wireless Earbuds",
+    "price": 900000,
+    "quantity": 2,
+    "order_date": "2025-05-21",
+    "discount": 0.05
+  },
+  {
+    "customer_id": 103,
+    "product_name": "Smart Vacuum",
+    "price": 3500000,
+    "quantity": 1,
+    "order_date": "2025-05-22",
+    "warranty_months": 12,
+    "shipping_service": "Express"
+  }
+]
